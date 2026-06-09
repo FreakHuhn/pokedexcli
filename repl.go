@@ -58,8 +58,8 @@ var commandHelp = []struct {
 }{
     {"exit", "Exit the Pokedex"},
     {"help", "Displays a help message."},
-	{"map", "Displays the next page of Pokemon."},
-	{"mapb", "Displays the previous page of Pokemon."},
+	{"map", "Displays the next page of Zones."},
+	{"mapb", "Displays the previous page of Zones."},
 }
 
 // Bereinigt die Benutzereingabe, indem sie in Kleinbuchstaben 
