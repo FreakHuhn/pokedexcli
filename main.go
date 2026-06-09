@@ -17,6 +17,6 @@ func main() {
 			continue
 		}
 		input := cleanInput(strings.ToLower(scanner.Text()))
-		fmt.Printf("Your command was: %s\n", input[0])
+		
 	}
 }
