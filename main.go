@@ -17,6 +17,9 @@ func main() {
 			continue
 		}
 		input := cleanInput(strings.ToLower(scanner.Text()))
+		if len(input) == 0 {
+			continue
+		}
 		if command, ok := commandMap[input[0]]; ok {
 			if err := command.callback(); err != nil {
 				fmt.Fprintln(os.Stderr, "Error executing command:", err)

@@ -18,6 +18,19 @@ var commandMap = map[string]cliCommand{
 		description: "Exit the Pokedex",
 		callback: commandExit,
 	},
+	"help": {
+		name : "help",
+		description : "Displays a help message.",
+		callback : help,
+	},
+}
+
+var commandHelp = []struct {
+    name        string
+    description string
+}{
+    {"exit", "Exit the Pokedex"},
+    {"help", "Displays a help message."},
 }
 
 
@@ -35,5 +48,13 @@ func cleanInput(text string) []string {
 func commandExit() error {
 	fmt.Printf("Closing the Pokedex... Goodbye!\n")
 	os.Exit(0)
+	return nil
+}
+
+func help() error {
+	fmt.Printf("Welcome to the Pokedex!\n")
+	for _, command := range commandHelp {
+		fmt.Printf("%s: %s\n", command.name, command.description)
+	}
 	return nil
 }
