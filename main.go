@@ -14,7 +14,7 @@ func main() {
     cfg := &configStruct{
         nextURL: &startURL,
     }
-
+	
     for {
         fmt.Print("Pokedex > ")
         scanner.Scan()
