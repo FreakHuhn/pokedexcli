@@ -45,6 +45,11 @@ var commandMap = map[string]cliCommand{
 		description: "Displays the next or previous page of Pokemon.",
 		callback: mapFunction,
 	},
+	"mapb": {
+		name: "mapb",
+		description: "Displays the previous page of Pokemon.",
+		callback: mapBackFunction,
+	},
 }
 
 var commandHelp = []struct {
@@ -53,7 +58,8 @@ var commandHelp = []struct {
 }{
     {"exit", "Exit the Pokedex"},
     {"help", "Displays a help message."},
-	{"map", "Displays the next or previous page of Pokemon."},
+	{"map", "Displays the next page of Pokemon."},
+	{"mapb", "Displays the previous page of Pokemon."},
 }
 
 // Bereinigt die Benutzereingabe, indem sie in Kleinbuchstaben 
@@ -110,6 +116,25 @@ func mapFunction(cfg *configStruct) error {
 		url = cfg.nextURL
 	} else {
 		url = cfg.previousURL
+	}
+	request, err := makeRequest(*url)
+	if err != nil {
+		return err
+	}
+	cfg.nextURL = request.Next
+	cfg.previousURL = request.Previous
+	for _, result := range request.Results {
+		fmt.Printf("%s\n", result.Name)
+	}
+	return nil
+}
+
+func mapBackFunction(cfg *configStruct) error {
+	var url *string
+	if cfg.previousURL != nil {
+		url = cfg.previousURL
+	} else {
+		url = cfg.nextURL
 	}
 	request, err := makeRequest(*url)
 	if err != nil {
