@@ -25,7 +25,17 @@ func (c *Cache) Add(key string, val []byte) {
 	c.mu.Unlock()
 }
 
+// Get Methode gibt den Wert für einen gegebenen Schlüssel zurück, falls er existiert.
+func (c *Cache) Get(key string) ([]byte, bool) {
+	c.mu.RLock()
+	entry, exists := c.data[key]
+	c.mu.RUnlock()
 
+	if !exists {
+		return nil, false
+	}
+	return entry.val, true
+}
 
 // reapLoop läuft kontinuierlich und entfernt Einträge, die älter als das angegebene Intervall sind.
 func (c *Cache) reapLoop(interval time.Duration) {
@@ -41,11 +51,6 @@ func (c *Cache) reapLoop(interval time.Duration) {
 		c.mu.Unlock()
 	}
 }
-
-
-
-
-
 
 // Erzeugt ein neues Cache-Objekt mit einem angegebenen Intervall.
 func NewCache(interval time.Duration) *Cache {
