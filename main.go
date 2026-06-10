@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/FreakHuhn/pokedexcli/internal/pokecache"
+	pokecache "github.com/FreakHuhn/pokedexcli/internal"
 )
 
 func main() {

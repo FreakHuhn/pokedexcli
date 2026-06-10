@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/FreakHuhn/pokedexcli/internal/pokecache"
+	pokecache "github.com/FreakHuhn/pokedexcli/internal"
 )
 
 type cliCommand struct {
@@ -151,7 +151,7 @@ func mapBackFunction(cfg *configStruct) error {
 	} else {
 		url = cfg.nextURL
 	}
-	request, err := makeRequest(*url)
+	request, err := makeRequest(cfg, *url)
 	if err != nil {
 		return err
 	}
