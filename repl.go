@@ -186,7 +186,6 @@ func explore(cfg *configStruct, args []string) error {
 	if len(args) == 0 || strings.TrimSpace(args[0]) == "" {
 		return fmt.Errorf("usage: explore <zone>")
 	}
-
 	zone := args[0]
 	fmt.Printf("Exploring %s...\n", zone)
 	body, err := makeRequest(cfg, fmt.Sprintf("https://pokeapi.co/api/v2/location-area/%s", zone))
@@ -194,13 +193,11 @@ func explore(cfg *configStruct, args []string) error {
 		fmt.Fprintln(os.Stderr, "Error exploring zone:", err)
 		return err
 	}
-
 	var request locationAreaDetailResponse
 	err = json.Unmarshal(body, &request)
 	if err != nil {
 		return err
 	}
-
 	fmt.Println("Found Pokemon:")
 	for _, encounter := range request.PokemonEncounters {
 		fmt.Printf(" - %s\n", encounter.Pokemon.Name)
