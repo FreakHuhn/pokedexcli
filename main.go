@@ -5,14 +5,20 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/FreakHuhn/pokedexcli/internal/pokecache"
 )
 
 func main() {
     scanner := bufio.NewScanner(os.Stdin)
 
     startURL := "https://pokeapi.co/api/v2/location-area"
+    cache := pokecache.NewCache(5 * time.Minute)
+
     cfg := &configStruct{
         nextURL: &startURL,
+        cache:   cache,
     }
 	
     for {

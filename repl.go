@@ -3,29 +3,33 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/FreakHuhn/pokedexcli/internal/pokecache"
 )
 
 type cliCommand struct {
-	name string
+	name 		string
 	description string
-	callback func(*configStruct) error
+	callback 	func(*configStruct) error
 }
 
 type configStruct struct {
-	nextURL *string 
+	nextURL 	*string 
 	previousURL *string
+	cache 		*pokecache.Cache
 }
 
 type requestStruct struct {
-	Count int `json:"count"`
-	Next *string `json:"next"`
-	Previous *string `json:"previous"`
-	Results []struct {
-		Name string `json:"name"`
-		URL string `json:"url"`
+	Count 		int `json:"count"`
+	Next 		*string `json:"next"`
+	Previous 	*string `json:"previous"`
+	Results 	[]struct {
+		Name 	string `json:"name"`
+		URL 	string `json:"url"`
 	} `json:"results"`
 }
 
@@ -94,19 +98,30 @@ func help(cfg *configStruct) error {
 
 
 // Macht Get request, unmarshalt die Antwort und gibt Struct zurück
-func makeRequest(url string) (requestStruct, error) {
-	var request requestStruct
-	response, err := http.Get(url)
-	if err != nil {
-		return request, err
-	}
-	defer response.Body.Close()
-
-	err = json.NewDecoder(response.Body).Decode(&request)
-	if err != nil {
-		return request, err
-	}
-	return request, nil
+func makeRequest(cfg *configStruct, url string) (requestStruct, error) {
+    var request requestStruct
+	if cachedData, ok := cfg.cache.Get(url); ok {
+        err := json.Unmarshal(cachedData, &request)
+        if err != nil {
+            return request, err
+        }
+        return request, nil
+    }
+    response, err := http.Get(url)
+    if err != nil {
+        return request, err
+    }
+    defer response.Body.Close()
+    body, err := io.ReadAll(response.Body)
+    if err != nil {
+        return request, err
+    }
+    cfg.cache.Add(url, body)
+    err = json.Unmarshal(body, &request)
+    if err != nil {
+        return request, err
+    }
+    return request, nil
 }
 
 // Gibt die Namen der Zonen der nächsten Seite aus (mapb zurück).
@@ -117,7 +132,7 @@ func mapFunction(cfg *configStruct) error {
 	} else {
 		url = cfg.previousURL
 	}
-	request, err := makeRequest(*url)
+	request, err := makeRequest(cfg, *url)
 	if err != nil {
 		return err
 	}
