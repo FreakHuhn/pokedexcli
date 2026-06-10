@@ -15,6 +15,18 @@ type Cache struct {
 	data map[string]cacheEntry
 }
 
+// Add Methode fügt einen neuen Eintrag zum Cache hinzu. 
+func (c *Cache) Add(key string, val []byte) {
+	c.mu.Lock()
+	c.data[key] = cacheEntry{
+		createAt: time.Now(),
+		val:      val,
+	}
+	c.mu.Unlock()
+}
+
+
+
 // reapLoop läuft kontinuierlich und entfernt Einträge, die älter als das angegebene Intervall sind.
 func (c *Cache) reapLoop(interval time.Duration) {
 	ticker := time.NewTicker(interval)
@@ -29,6 +41,11 @@ func (c *Cache) reapLoop(interval time.Duration) {
 		c.mu.Unlock()
 	}
 }
+
+
+
+
+
 
 // Erzeugt ein neues Cache-Objekt mit einem angegebenen Intervall.
 func NewCache(interval time.Duration) *Cache {
