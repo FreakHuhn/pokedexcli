@@ -33,7 +33,11 @@ func main() {
             continue
         }
         if command, ok := commandMap[input[0]]; ok {
-            if err := command.callback(cfg); err != nil {
+            args := []string{}
+            if len(input) > 1 {
+                args = input[1:]
+            }
+            if err := command.callback(cfg, args); err != nil {
                 fmt.Fprintln(os.Stderr, "Error executing command:", err)
             }
         } else {
