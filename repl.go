@@ -323,6 +323,7 @@ func catch(cfg *configStruct, args []string) error {
 	return nil
 }
 
+// Gibt Stats der Pokemon aus, indem es den Namen des Pokemons als Argument übergeben bekommt.
 func inspect(cfg *configStruct, args []string) error {
 	if len(args) == 0 || strings.TrimSpace(args[0]) == "" {
 		return fmt.Errorf("usage: inspect <pokemon>")
