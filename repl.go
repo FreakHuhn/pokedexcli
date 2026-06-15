@@ -13,17 +13,19 @@ import (
 )
 
 type Pokemon struct {
-	Abilities              []PokemonAbility `json:"abilities"`
-	BaseExperience         int              `json:"base_experience"`
-	Cries                  Cries            `json:"cries"`
-	Forms                  []NamedAPIResource `json:"forms"`
-	GameIndices            []GameIndex      `json:"game_indices"`
-	Height                 int              `json:"height"`
-	HeldItems              []HeldItem       `json:"held_items"`
-	ID                     int              `json:"id"`
-	IsDefault              bool             `json:"is_default"`
-	LocationAreaEncounters string           `json:"location_area_encounters"`
-	Moves                  []PokemonMove    `json:"moves"`
+	Abilities              []PokemonAbility 	`json:"abilities"`
+	BaseExperience         int              	`json:"base_experience"`
+	Cries                  Cries            	`json:"cries"`
+	Forms                  []NamedAPIResource	`json:"forms"`
+	GameIndices            []GameIndex      	`json:"game_indices"`
+	Height                 int             	 	`json:"height"`
+	HeldItems              []HeldItem       	`json:"held_items"`
+	ID                     int              	`json:"id"`
+	IsDefault              bool             	`json:"is_default"`
+	LocationAreaEncounters string           	`json:"location_area_encounters"`
+	Moves                  []PokemonMove    	`json:"moves"`
+	Stats                  []PokemonStat    	`json:"stats"`
+	Types                  []PokemonType    	`json:"types"`
 }
 
 type NamedAPIResource struct {
@@ -35,6 +37,17 @@ type PokemonAbility struct {
 	Ability  NamedAPIResource `json:"ability"`
 	IsHidden bool             `json:"is_hidden"`
 	Slot     int              `json:"slot"`
+}
+
+type PokemonStat struct {
+	BaseStat int              `json:"base_stat"`
+	Effort   int              `json:"effort"`
+	Stat     NamedAPIResource `json:"stat"`
+}
+
+type PokemonType struct {
+	Slot int              `json:"slot"`
+	Type NamedAPIResource `json:"type"`
 }
 
 type Cries struct {
@@ -133,6 +146,11 @@ var commandMap = map[string]cliCommand{
 		description: "Try to catch the specified Pokemon.",
 		callback: catch,
 	},
+	"inspect": {
+		name: "inspect",
+		description: "Displays the stats and types of the specified Pokemon.",
+		callback: inspect,
+	},
 }
 
 
@@ -146,6 +164,7 @@ var commandHelp = []struct {
 	{"mapb", "Displays the previous page of Zones."},
 	{"explore <zone>", "Explores the specified zone and lists the Pokemon that can be found there."},
 	{"catch <pokemon>", "Try to catch the specified Pokemon."},
+	{"inspect <pokemon>", "Displays the stats and types of the specified Pokemon."},
 }
 
 // Bereinigt die Benutzereingabe, indem sie in Kleinbuchstaben 
@@ -301,5 +320,28 @@ func catch(cfg *configStruct, args []string) error {
 	}
 	fmt.Printf("Successfully caught %s!\n", pokemonName)
 	caughtPokemon[pokemonName] = pokemon
+	return nil
+}
+
+func inspect(cfg *configStruct, args []string) error {
+	if len(args) == 0 || strings.TrimSpace(args[0]) == "" {
+		return fmt.Errorf("usage: inspect <pokemon>")
+	}
+	pokemonName := args[0]
+	pokemon, exists := caughtPokemon[pokemonName]
+	if !exists {
+		return fmt.Errorf("you haven't caught %s yet!", pokemonName)
+	}
+	fmt.Printf("Stats:\n")
+	fmt.Printf(" - hp: %d\n", pokemon.Stats[0].BaseStat)
+	fmt.Printf(" - attack: %d\n", pokemon.Stats[1].BaseStat)
+	fmt.Printf(" - defense: %d\n", pokemon.Stats[2].BaseStat)
+	fmt.Printf(" - special-attack: %d\n", pokemon.Stats[3].BaseStat)
+	fmt.Printf(" - special-defense: %d\n", pokemon.Stats[4].BaseStat)
+	fmt.Printf(" - speed: %d\n", pokemon.Stats[5].BaseStat)
+	fmt.Printf("Types:\n")
+	for _, t := range pokemon.Types {
+		fmt.Printf(" - %s\n", t.Type.Name)
+	}
 	return nil
 }
