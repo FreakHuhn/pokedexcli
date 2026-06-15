@@ -151,6 +151,11 @@ var commandMap = map[string]cliCommand{
 		description: "Displays the stats and types of the specified Pokemon.",
 		callback: inspect,
 	},
+	"pokedex": {
+			name: "pokedex",
+			description: "Lists all caught Pokemon.",
+			callback: pokedex,
+		},
 }
 
 
@@ -165,6 +170,7 @@ var commandHelp = []struct {
 	{"explore <zone>", "Explores the specified zone and lists the Pokemon that can be found there."},
 	{"catch <pokemon>", "Try to catch the specified Pokemon."},
 	{"inspect <pokemon>", "Displays the stats and types of the specified Pokemon."},
+	{"pokedex", "Lists all caught Pokemon."},
 }
 
 // Bereinigt die Benutzereingabe, indem sie in Kleinbuchstaben 
@@ -314,7 +320,7 @@ func catch(cfg *configStruct, args []string) error {
 		return fmt.Errorf("error catching %s: received status code %d", pokemonName, resp.StatusCode)
 	}
 	randomNumber := rand.Intn(100)
-	if randomNumber < pokemon.BaseExperience {
+	if randomNumber < pokemon.BaseExperience/4 {
 		fmt.Printf("%s escaped!\n", pokemonName)
 		return nil
 	}
@@ -340,9 +346,23 @@ func inspect(cfg *configStruct, args []string) error {
 	fmt.Printf(" - special-attack: %d\n", pokemon.Stats[3].BaseStat)
 	fmt.Printf(" - special-defense: %d\n", pokemon.Stats[4].BaseStat)
 	fmt.Printf(" - speed: %d\n", pokemon.Stats[5].BaseStat)
+	fmt.Printf("Base Experience: %d\n", pokemon.BaseExperience)
 	fmt.Printf("Types:\n")
 	for _, t := range pokemon.Types {
 		fmt.Printf(" - %s\n", t.Type.Name)
+	}
+	return nil
+}
+
+// Listet alle gefangenen Pokemon auf, indem es den Befehl "pokedex" eingibt.
+func pokedex(cfg *configStruct, args []string) error {
+	if len(caughtPokemon) == 0 {
+		fmt.Println("You haven't caught any Pokemon yet!")
+		return nil
+	}
+	fmt.Println("Caught Pokemon:")
+	for name := range caughtPokemon {
+		fmt.Printf(" - %s\n", name)
 	}
 	return nil
 }
