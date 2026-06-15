@@ -4,12 +4,70 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
 
 	pokecache "github.com/FreakHuhn/pokedexcli/internal"
 )
+
+type Pokemon struct {
+	Abilities              []PokemonAbility `json:"abilities"`
+	BaseExperience         int              `json:"base_experience"`
+	Cries                  Cries            `json:"cries"`
+	Forms                  []NamedAPIResource `json:"forms"`
+	GameIndices            []GameIndex      `json:"game_indices"`
+	Height                 int              `json:"height"`
+	HeldItems              []HeldItem       `json:"held_items"`
+	ID                     int              `json:"id"`
+	IsDefault              bool             `json:"is_default"`
+	LocationAreaEncounters string           `json:"location_area_encounters"`
+	Moves                  []PokemonMove    `json:"moves"`
+}
+
+type NamedAPIResource struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+}
+
+type PokemonAbility struct {
+	Ability  NamedAPIResource `json:"ability"`
+	IsHidden bool             `json:"is_hidden"`
+	Slot     int              `json:"slot"`
+}
+
+type Cries struct {
+	Latest string `json:"latest"`
+	Legacy string `json:"legacy"`
+}
+
+type GameIndex struct {
+	GameIndex int              `json:"game_index"`
+	Version   NamedAPIResource `json:"version"`
+}
+
+type HeldItem struct {
+	Item           NamedAPIResource    `json:"item"`
+	VersionDetails []HeldItemVersion   `json:"version_details"`
+}
+
+type HeldItemVersion struct {
+	Rarity  int              `json:"rarity"`
+	Version NamedAPIResource `json:"version"`
+}
+
+type PokemonMove struct {
+	Move                NamedAPIResource     `json:"move"`
+	VersionGroupDetails []VersionGroupDetail `json:"version_group_details"`
+}
+
+type VersionGroupDetail struct {
+	LevelLearnedAt  int              `json:"level_learned_at"`
+	MoveLearnMethod NamedAPIResource `json:"move_learn_method"`
+	Order            *int             `json:"order"`
+	VersionGroup     NamedAPIResource `json:"version_group"`
+}
 
 type cliCommand struct {
 	name 		string
@@ -42,6 +100,8 @@ type locationAreaDetailResponse struct {
 	} `json:"pokemon_encounters"`
 }
 
+var caughtPokemon = make(map[string]Pokemon)
+
 var commandMap = map[string]cliCommand{
 	"exit": {
 		name: "exit",
@@ -68,7 +128,13 @@ var commandMap = map[string]cliCommand{
 		description: "Explores the specified zone and lists the Pokemon that can be found there.",
 		callback: explore,
 	},
+	"catch": {
+		name: "catch",
+		description: "Try to catch the specified Pokemon.",
+		callback: catch,
+	},
 }
+
 
 var commandHelp = []struct {
     name        string
@@ -79,6 +145,7 @@ var commandHelp = []struct {
 	{"map", "Displays the next page of Zones."},
 	{"mapb", "Displays the previous page of Zones."},
 	{"explore <zone>", "Explores the specified zone and lists the Pokemon that can be found there."},
+	{"catch <pokemon>", "Try to catch the specified Pokemon."},
 }
 
 // Bereinigt die Benutzereingabe, indem sie in Kleinbuchstaben 
@@ -202,5 +269,37 @@ func explore(cfg *configStruct, args []string) error {
 	for _, encounter := range request.PokemonEncounters {
 		fmt.Printf(" - %s\n", encounter.Pokemon.Name)
 	}
+	return nil
+}
+
+// Fängt ein Pokemon, indem es den Namen des Pokemons als Argument übergeben bekommt und fügt es dem pokedex hinzu. 
+// (Die Fangchance basiert auf der Basis-Erfahrung des Pokemons, je höher die Basis-Erfahrung, desto schwieriger ist es, das Pokemon zu fangen.)
+func catch(cfg *configStruct, args []string) error {
+	if len(args) == 0 || strings.TrimSpace(args[0]) == "" {
+		return fmt.Errorf("usage: catch <pokemon>")
+	}
+	pokemonName := args[0]
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemonName)
+	endpoint := fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%s/", pokemonName)
+	resp, err := http.Get(endpoint)
+	if err != nil {
+		return fmt.Errorf("error catching %s: %v", pokemonName, err)
+	}
+	defer resp.Body.Close()
+	var pokemon Pokemon
+	err = json.NewDecoder(resp.Body).Decode(&pokemon)
+	if err != nil {
+		return fmt.Errorf("error decoding response for %s: %v", pokemonName, err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error catching %s: received status code %d", pokemonName, resp.StatusCode)
+	}
+	randomNumber := rand.Intn(100)
+	if randomNumber < pokemon.BaseExperience {
+		fmt.Printf("%s escaped!\n", pokemonName)
+		return nil
+	}
+	fmt.Printf("Successfully caught %s!\n", pokemonName)
+	caughtPokemon[pokemonName] = pokemon
 	return nil
 }
